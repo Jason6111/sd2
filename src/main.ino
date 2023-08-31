@@ -212,19 +212,6 @@ lv_coord_t updateNetSeries(lv_coord_t *series, double speed)
     return local_max;
 }
 
-void getNetworkReceived()
-{
-    if (getNetDataInfoWithDimension("net.eth0", netChartData, "received"))
-    {
-        Serial.print("Received: ");
-        Serial.println(String(netChartData.max).c_str());
-
-        down_speed = netChartData.max / 8.0; // byte = 8 bit
-        down_speed_max = updateNetSeries(download_serise, down_speed);
-        lv_chart_set_points(chart, ser2, download_serise);
-    }
-}
-
 void getNetworkSent()
 {
     if (getNetDataInfoWithDimension("net.eth0", netChartData, "sent"))
@@ -232,9 +219,22 @@ void getNetworkSent()
         Serial.print("Sent: ");
         Serial.println(String(netChartData.max).c_str());
 
-        up_speed = -1 * netChartData.max / 8.0;
+        down_speed = -1 * netChartData.max / 8.0; // byte = 8 bit
+        down_speed_max = updateNetSeries(download_serise, down_speed);
+        lv_chart_set_points(chart, ser1, download_serise);
+    }
+}
+
+void getNetworkReceived()
+{
+    if (getNetDataInfoWithDimension("net.eth0", netChartData, "received"))
+    {
+        Serial.print("Received: ");
+        Serial.println(String(netChartData.max).c_str());
+
+        up_speed = netChartData.max / 8.0;
         up_speed_max = updateNetSeries(upload_serise, up_speed);
-        lv_chart_set_points(chart, ser1, upload_serise);
+        lv_chart_set_points(chart, ser2, upload_serise);
     }
 }
 
@@ -251,58 +251,20 @@ void getTemperature()
 
 void updateNetworkInfoLabel()
 {
-    if (up_speed < 100.0)
-    {
-        // < 99.99 K/S
-        lv_label_set_text_fmt(up_speed_label, "%.2f", up_speed);
-        lv_label_set_text(up_speed_unit_label, "K/s");
-    }
-    else if (up_speed < 1000.0)
-    {
-        // 999.9 K/S
-        lv_label_set_text_fmt(up_speed_label, "%.1f", up_speed);
-        lv_label_set_text(up_speed_unit_label, "K/s");
-    }
-    else if (up_speed < 100000.0)
-    {
-        // 99.99 M/S
-        up_speed /= 1024.0;
-        lv_label_set_text_fmt(up_speed_label, "%.2f", up_speed);
-        lv_label_set_text(up_speed_unit_label, "M/s");
-    }
-    else if (up_speed < 1000000.0)
+    if (up_speed < 10000000.0)
     {
         // 999.9 M/S
         up_speed = up_speed / 1024.0;
         lv_label_set_text_fmt(up_speed_label, "%.1f", up_speed);
-        lv_label_set_text(up_speed_unit_label, "M/s");
+        lv_label_set_text(up_speed_unit_label, "Mbps");
     }
 
-    if (down_speed < 100.0)
-    {
-        // < 99.99 K/S
-        lv_label_set_text_fmt(down_speed_label, "%.2f", down_speed);
-        lv_label_set_text(down_speed_unit_label, "K/s");
-    }
-    else if (down_speed < 1000.0)
-    {
-        // 999.9 K/S
-        lv_label_set_text_fmt(down_speed_label, "%.1f", down_speed);
-        lv_label_set_text(down_speed_unit_label, "K/s");
-    }
-    else if (down_speed < 100000.0)
-    {
-        // 99.99 M/S
-        down_speed /= 1024.0;
-        lv_label_set_text_fmt(down_speed_label, "%.2f", down_speed);
-        lv_label_set_text(down_speed_unit_label, "M/s");
-    }
-    else if (down_speed < 1000000.0)
+    if (down_speed < 10000000.0)
     {
         // 999.9 M/S
         down_speed = down_speed / 1024.0;
         lv_label_set_text_fmt(down_speed_label, "%.1f", down_speed);
-        lv_label_set_text(down_speed_unit_label, "M/s");
+        lv_label_set_text(down_speed_unit_label, "Mbps");
     }
 }
 
@@ -422,15 +384,15 @@ void setup()
     lv_obj_add_style(upload_label, LV_LABEL_PART_MAIN, &iconfont);
     lv_label_set_text(upload_label, CUSTOM_SYMBOL_UPLOAD);
     lv_color_t speed_label_color = lv_color_hex(0x838a99);
-    lv_obj_set_style_local_text_color(upload_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-    lv_obj_set_pos(upload_label, 10, 18);
+    lv_obj_set_style_local_text_color(upload_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
+    lv_obj_set_pos(upload_label, 120, 18);
 
     lv_obj_t *down_label = lv_label_create(monitor_page, NULL);
     lv_obj_add_style(down_label, LV_LABEL_PART_MAIN, &iconfont);
     lv_label_set_text(down_label, CUSTOM_SYMBOL_DOWNLOAD);
     speed_label_color = lv_color_hex(0x838a99);
-    lv_obj_set_style_local_text_color(down_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
-    lv_obj_set_pos(down_label, 120, 18);
+    lv_obj_set_style_local_text_color(down_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_pos(down_label, 10, 18);
 
     // Upload & Download Speed Display
     static lv_style_t font_22;
@@ -442,23 +404,23 @@ void setup()
     lv_label_set_text(up_speed_label, "56.78");
     lv_obj_add_style(up_speed_label, LV_LABEL_PART_MAIN, &font_22);
     lv_obj_set_style_local_text_color(up_speed_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_obj_set_pos(up_speed_label, 30, 15);
+    lv_obj_set_pos(up_speed_label, 142, 15);
 
     up_speed_unit_label = lv_label_create(monitor_page, NULL);
-    lv_label_set_text(up_speed_unit_label, "K/S");
+    lv_label_set_text(up_speed_unit_label, "Mbps");
     lv_obj_set_style_local_text_color(up_speed_unit_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, speed_label_color);
-    lv_obj_set_pos(up_speed_unit_label, 90, 18);
+    lv_obj_set_pos(up_speed_unit_label, 202, 18);
 
     down_speed_label = lv_label_create(monitor_page, NULL);
     lv_label_set_text(down_speed_label, "12.34");
     lv_obj_add_style(down_speed_label, LV_LABEL_PART_MAIN, &font_22);
     lv_obj_set_style_local_text_color(down_speed_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_obj_set_pos(down_speed_label, 142, 15);
+    lv_obj_set_pos(down_speed_label, 30, 15);
 
     down_speed_unit_label = lv_label_create(monitor_page, NULL);
-    lv_label_set_text(down_speed_unit_label, "M/S");
+    lv_label_set_text(down_speed_unit_label, "Mbps");
     lv_obj_set_style_local_text_color(down_speed_unit_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, speed_label_color);
-    lv_obj_set_pos(down_speed_unit_label, 202, 18);
+    lv_obj_set_pos(down_speed_unit_label, 90, 18);
 
     // 绘制曲线图
     /*Create a chart*/
@@ -481,8 +443,8 @@ void setup()
     ser2 = lv_chart_add_series(chart, LV_COLOR_GREEN);
 
     // /*Directly set points on 'ser2'*/
-    lv_chart_set_points(chart, ser2, download_serise);
-    lv_chart_set_points(chart, ser1, upload_serise);
+    lv_chart_set_points(chart, ser2, upload_serise);
+    lv_chart_set_points(chart, ser1, download_serise);
 
     lv_chart_refresh(chart); /*Required after direct set*/
 
