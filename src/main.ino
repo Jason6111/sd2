@@ -219,7 +219,7 @@ void getNetworkSent()
         Serial.print("Sent: ");
         Serial.println(String(netChartData.max).c_str());
 
-        down_speed = -1 * netChartData.max / 8.0; // byte = 8 bit
+        down_speed = -1 * netChartData.max; // byte = 8 bit
         down_speed_max = updateNetSeries(download_serise, down_speed);
         lv_chart_set_points(chart, ser1, download_serise);
     }
@@ -232,7 +232,7 @@ void getNetworkReceived()
         Serial.print("Received: ");
         Serial.println(String(netChartData.max).c_str());
 
-        up_speed = netChartData.max / 8.0;
+        up_speed = netChartData.max;
         up_speed_max = updateNetSeries(upload_serise, up_speed);
         lv_chart_set_points(chart, ser2, upload_serise);
     }
