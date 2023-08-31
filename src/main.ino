@@ -179,7 +179,7 @@ void getMemoryUsage()
         Serial.print("Memory Available: ");
         Serial.println(String(netChartData.max).c_str());
 
-        mem_usage = 100 * (1.0 - netChartData.max / 15799.0);
+        mem_usage = 100 * (1.0 - netChartData.max / 16384.0);
     }
 }
 
@@ -214,12 +214,12 @@ lv_coord_t updateNetSeries(lv_coord_t *series, double speed)
 
 void getNetworkReceived()
 {
-    if (getNetDataInfoWithDimension("net.eth2", netChartData, "received"))
+    if (getNetDataInfoWithDimension("net.eth0", netChartData, "received"))
     {
         Serial.print("Received: ");
         Serial.println(String(netChartData.max).c_str());
 
-        down_speed = netChartData.max; // byte = 8 bit
+        down_speed = netChartData.max / 8.0; // byte = 8 bit
         down_speed_max = updateNetSeries(download_serise, down_speed);
         lv_chart_set_points(chart, ser2, download_serise);
     }
@@ -227,12 +227,12 @@ void getNetworkReceived()
 
 void getNetworkSent()
 {
-    if (getNetDataInfoWithDimension("net.eth2", netChartData, "sent"))
+    if (getNetDataInfoWithDimension("net.eth0", netChartData, "sent"))
     {
         Serial.print("Sent: ");
         Serial.println(String(netChartData.max).c_str());
 
-        up_speed = -1 * netChartData.max;
+        up_speed = -1 * netChartData.max / 8.0;
         up_speed_max = updateNetSeries(upload_serise, up_speed);
         lv_chart_set_points(chart, ser1, upload_serise);
     }
@@ -251,20 +251,58 @@ void getTemperature()
 
 void updateNetworkInfoLabel()
 {
-if (up_speed < 1000000.0)
+    if (up_speed < 100.0)
+    {
+        // < 99.99 K/S
+        lv_label_set_text_fmt(up_speed_label, "%.2f", up_speed);
+        lv_label_set_text(up_speed_unit_label, "K/s");
+    }
+    else if (up_speed < 1000.0)
+    {
+        // 999.9 K/S
+        lv_label_set_text_fmt(up_speed_label, "%.1f", up_speed);
+        lv_label_set_text(up_speed_unit_label, "K/s");
+    }
+    else if (up_speed < 100000.0)
+    {
+        // 99.99 M/S
+        up_speed /= 1024.0;
+        lv_label_set_text_fmt(up_speed_label, "%.2f", up_speed);
+        lv_label_set_text(up_speed_unit_label, "M/s");
+    }
+    else if (up_speed < 1000000.0)
     {
         // 999.9 M/S
         up_speed = up_speed / 1024.0;
         lv_label_set_text_fmt(up_speed_label, "%.1f", up_speed);
-        lv_label_set_text(up_speed_unit_label, "Mbps");
+        lv_label_set_text(up_speed_unit_label, "M/s");
     }
 
-    if (down_speed < 1000000.0)
+    if (down_speed < 100.0)
+    {
+        // < 99.99 K/S
+        lv_label_set_text_fmt(down_speed_label, "%.2f", down_speed);
+        lv_label_set_text(down_speed_unit_label, "K/s");
+    }
+    else if (down_speed < 1000.0)
+    {
+        // 999.9 K/S
+        lv_label_set_text_fmt(down_speed_label, "%.1f", down_speed);
+        lv_label_set_text(down_speed_unit_label, "K/s");
+    }
+    else if (down_speed < 100000.0)
+    {
+        // 99.99 M/S
+        down_speed /= 1024.0;
+        lv_label_set_text_fmt(down_speed_label, "%.2f", down_speed);
+        lv_label_set_text(down_speed_unit_label, "M/s");
+    }
+    else if (down_speed < 1000000.0)
     {
         // 999.9 M/S
         down_speed = down_speed / 1024.0;
         lv_label_set_text_fmt(down_speed_label, "%.1f", down_speed);
-        lv_label_set_text(down_speed_unit_label, "Mbps");
+        lv_label_set_text(down_speed_unit_label, "M/s");
     }
 }
 
@@ -384,15 +422,15 @@ void setup()
     lv_obj_add_style(upload_label, LV_LABEL_PART_MAIN, &iconfont);
     lv_label_set_text(upload_label, CUSTOM_SYMBOL_UPLOAD);
     lv_color_t speed_label_color = lv_color_hex(0x838a99);
-    lv_obj_set_style_local_text_color(upload_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
-    lv_obj_set_pos(upload_label, 120, 18);
+    lv_obj_set_style_local_text_color(upload_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_pos(upload_label, 10, 18);
 
     lv_obj_t *down_label = lv_label_create(monitor_page, NULL);
     lv_obj_add_style(down_label, LV_LABEL_PART_MAIN, &iconfont);
     lv_label_set_text(down_label, CUSTOM_SYMBOL_DOWNLOAD);
     speed_label_color = lv_color_hex(0x838a99);
-    lv_obj_set_style_local_text_color(down_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-    lv_obj_set_pos(down_label, 10, 18);
+    lv_obj_set_style_local_text_color(down_label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GREEN);
+    lv_obj_set_pos(down_label, 120, 18);
 
     // Upload & Download Speed Display
     static lv_style_t font_22;
