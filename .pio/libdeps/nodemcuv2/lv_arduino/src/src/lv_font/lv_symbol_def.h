@@ -79,8 +79,8 @@ extern "C" {
 #define LV_SYMBOL_SD_CARD         "\xef\x9F\x82" /*63426, 0xF7C2*/
 #define LV_SYMBOL_NEW_LINE        "\xef\xA2\xA2" /*63650, 0xF8A2*/
 
-#define CUSTOM_SYMBOL_UPLOAD        "\xEE\xAC\xA1"
-#define CUSTOM_SYMBOL_DOWNLOAD      "\xEE\x9A\x95"
+#define CUSTOM_SYMBOL_UPLOAD        "\xEE\x9A\x95"
+#define CUSTOM_SYMBOL_DOWNLOAD      "\xEE\xAC\xA1"
 
 /** Invalid symbol at (U+F8FF). If written before a string then `lv_img` will show it as a label*/
 #define LV_SYMBOL_DUMMY           "\xEF\xA3\xBF"

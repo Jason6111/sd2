@@ -82,7 +82,7 @@ void parseNetDataResponse(WiFiClient &client, NetChartData &data)
  * 从软路由NetData获取监控信息
  * ChartID:
  *  system.cpu - CPU占用率信息
- *  sensors.temp_thermal_zone0_thermal_thermal_zone - CPU 温度信息
+ *  sensors.temp_thermal_zone1_thermal_thermal_zone1 - CPU 温度信息
  */
 
 bool getNetDataInfoWithDimension(String chartID, NetChartData &data, String dimensions_filter)
